@@ -1,5 +1,5 @@
 """
-ASGI config for lr_03_django_xml_json project.
+ASGI config for lr_04_mysql project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lr_03_django_xml_json.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lr_04_mysql.settings")
 
 application = get_asgi_application()

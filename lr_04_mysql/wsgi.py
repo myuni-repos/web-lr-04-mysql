@@ -1,5 +1,5 @@
 """
-WSGI config for lr_03_django_xml_json project.
+WSGI config for lr_04_mysql project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lr_03_django_xml_json.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lr_04_mysql.settings")
 
 application = get_wsgi_application()

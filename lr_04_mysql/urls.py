@@ -1,5 +1,5 @@
 """
-URL configuration for lr_03_django_xml_json project.
+URL configuration for lr_04_mysql project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/6.1/topics/http/urls/
