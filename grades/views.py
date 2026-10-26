@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.db import IntegrityError
 from django.db.models import Q
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from .forms import GradeForm, UploadFileForm, GradeDatabaseForm
 from .models import Grade
 from .utils import save_grade_to_file, get_all_grades, process_uploaded_file
@@ -86,15 +87,18 @@ def edit_grade(request, pk):
     grade = get_object_or_404(Grade, pk=pk)
     form = GradeDatabaseForm(request.POST or None, instance=grade)
     if request.method == 'POST' and form.is_valid():
-        form.save()
-        return redirect('database_list')
+        try:
+            form.save()
+            return redirect('database_list')
+        except IntegrityError:
+            form.add_error(None, 'Такая запись уже существует в базе данных.')
     return render(request, 'grades/edit_grade.html', {'form': form, 'grade': grade})
 
 
+@require_POST
 def delete_grade(request, pk):
     grade = get_object_or_404(Grade, pk=pk)
-    if request.method == 'POST':
-        grade.delete()
+    grade.delete()
     return redirect('database_list')
 
 def upload_file(request):
