@@ -1,21 +1,11 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Записи из базы данных</title>
-</head>
-<body>
-    <nav>
-        <a href="{% url 'index' %}">Добавить запись</a>
-        <a href="{% url 'file_list' %}">Файлы</a>
-        <a href="{% url 'database_list' %}">База данных</a>
-        <a href="{% url 'upload_file' %}">Загрузить файл</a>
-    </nav>
-    <h1>Успеваемость: база данных</h1>
+{% extends 'grades/base.html' %}
+{% block content %}
+    <h1 class="h3 mb-4">Успеваемость: база данных</h1>
     <form hidden>{% csrf_token %}</form>
-    <label>Поиск <input type="search" id="search" placeholder="Студент, группа, предмет или преподаватель"></label>
+    <label class="form-label" for="search">Поиск</label>
+    <input class="form-control mb-3" type="search" id="search" placeholder="Студент, группа, предмет или преподаватель">
     <p id="empty" {% if grades %}hidden{% endif %}>В базе данных пока нет записей.</p>
-    <table id="grades-table" {% if not grades %}hidden{% endif %}>
+    <div class="table-responsive"><table class="table table-striped table-bordered bg-white" id="grades-table" {% if not grades %}hidden{% endif %}>
         <thead><tr><th>Студент</th><th>Группа</th><th>Предмет</th><th>Оценка</th><th>Дата</th><th>Преподаватель</th><th>Действия</th></tr></thead>
         <tbody>
         {% for grade in grades %}
@@ -27,7 +17,7 @@
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
     <script>
         const search = document.querySelector('#search');
         const table = document.querySelector('#grades-table');
@@ -70,5 +60,4 @@
             empty.textContent = search.value ? 'По вашему запросу ничего не найдено.' : 'В базе данных пока нет записей.';
         });
     </script>
-</body>
-</html>
+{% endblock %}

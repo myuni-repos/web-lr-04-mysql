@@ -26,6 +26,11 @@ class GradeForm(forms.Form):
     storage = forms.ChoiceField(choices=STORAGE_CHOICES, label="Куда сохранить")
     file_format = forms.ChoiceField(choices=FORMAT_CHOICES, label="Формат файла", required=False)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-select' if isinstance(field.widget, forms.Select) else 'form-control'
+
     def clean(self):
         cleaned_data = super().clean()
         if cleaned_data.get('storage') == 'file' and not cleaned_data.get('file_format'):
@@ -34,6 +39,11 @@ class GradeForm(forms.Form):
 
 
 class GradeDatabaseForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
+
     class Meta:
         model = Grade
         fields = ['student_name', 'group', 'subject', 'grade', 'date', 'teacher']
