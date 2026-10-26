@@ -1,5 +1,7 @@
 from django.shortcuts import render
-from .forms import GradeForm, UploadFileForm
+from django.db import IntegrityError
+from .forms import GradeForm, UploadFileForm, GradeDatabaseForm
+from .models import Grade
 from .utils import save_grade_to_file, get_all_grades, process_uploaded_file
 
 def index(request):
@@ -9,9 +11,23 @@ def index(request):
         form = GradeForm(request.POST)
         
         if form.is_valid():
-            save_grade_to_file(form.cleaned_data)
-            message = 'Данные успешно сохранены в файл!'
-            form = GradeForm()
+            if form.cleaned_data['storage'] == 'file':
+                save_grade_to_file(form.cleaned_data)
+                message = 'Данные успешно сохранены в файл!'
+                form = GradeForm()
+            else:
+                grade_form = GradeDatabaseForm(form.cleaned_data)
+                if grade_form.is_valid():
+                    try:
+                        grade_form.save()
+                        message = 'Данные успешно сохранены в базу данных!'
+                        form = GradeForm()
+                    except IntegrityError:
+                        form.add_error(None, 'Такая запись уже существует в базе данных.')
+                else:
+                    for field, errors in grade_form.errors.items():
+                        for error in errors:
+                            form.add_error(None if field == '__all__' else field, error)
     else:
         form = GradeForm()
         

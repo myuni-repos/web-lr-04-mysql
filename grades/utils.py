@@ -8,6 +8,7 @@ from django.conf import settings
 STORAGE_DIR = settings.BASE_DIR / 'storage'
 
 def save_grade_to_file(data):
+    STORAGE_DIR.mkdir(exist_ok=True)
     unique_filename = f"grade_{uuid.uuid4().hex}"
     file_format = data['file_format'] 
     
