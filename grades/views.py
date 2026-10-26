@@ -1,5 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.db import IntegrityError
+from django.db.models import Q
+from django.http import JsonResponse
 from .forms import GradeForm, UploadFileForm, GradeDatabaseForm
 from .models import Grade
 from .utils import save_grade_to_file, get_all_grades, process_uploaded_file
@@ -51,6 +53,49 @@ def file_list(request):
     }
     
     return render(request, 'grades/file_list.html', context)
+
+
+def database_list(request):
+    grades = Grade.objects.all()
+    return render(request, 'grades/database_list.html', {'grades': grades})
+
+
+def search_grades(request):
+    query = request.GET.get('q', '').strip()
+    grades = Grade.objects.all()
+    if query:
+        grades = grades.filter(
+            Q(student_name__icontains=query) | Q(group__icontains=query) |
+            Q(subject__icontains=query) | Q(teacher__icontains=query)
+        )
+    return JsonResponse({'grades': [
+        {
+            'id': grade.pk,
+            'student_name': grade.student_name,
+            'group': grade.group,
+            'subject': grade.subject,
+            'grade': grade.grade,
+            'date': grade.date.strftime('%d.%m.%Y'),
+            'teacher': grade.teacher,
+        }
+        for grade in grades
+    ]})
+
+
+def edit_grade(request, pk):
+    grade = get_object_or_404(Grade, pk=pk)
+    form = GradeDatabaseForm(request.POST or None, instance=grade)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('database_list')
+    return render(request, 'grades/edit_grade.html', {'form': form, 'grade': grade})
+
+
+def delete_grade(request, pk):
+    grade = get_object_or_404(Grade, pk=pk)
+    if request.method == 'POST':
+        grade.delete()
+    return redirect('database_list')
 
 def upload_file(request):
     message = ''

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Записи из базы данных</title>
+</head>
+<body>
+    <nav>
+        <a href="{% url 'index' %}">Добавить запись</a>
+        <a href="{% url 'file_list' %}">Файлы</a>
+        <a href="{% url 'database_list' %}">База данных</a>
+        <a href="{% url 'upload_file' %}">Загрузить файл</a>
+    </nav>
+    <h1>Успеваемость: база данных</h1>
+    <form hidden>{% csrf_token %}</form>
+    <label>Поиск <input type="search" id="search" placeholder="Студент, группа, предмет или преподаватель"></label>
+    <p id="empty" {% if grades %}hidden{% endif %}>В базе данных пока нет записей.</p>
+    <table id="grades-table" {% if not grades %}hidden{% endif %}>
+        <thead><tr><th>Студент</th><th>Группа</th><th>Предмет</th><th>Оценка</th><th>Дата</th><th>Преподаватель</th><th>Действия</th></tr></thead>
+        <tbody>
+        {% for grade in grades %}
+            <tr>
+                <td>{{ grade.student_name }}</td><td>{{ grade.group }}</td><td>{{ grade.subject }}</td>
+                <td>{{ grade.grade }}</td><td>{{ grade.date|date:'d.m.Y' }}</td><td>{{ grade.teacher }}</td>
+                <td><a href="{% url 'edit_grade' grade.pk %}">Изменить</a>
+                    <form method="post" action="{% url 'delete_grade' grade.pk %}" style="display:inline">{% csrf_token %}<button>Удалить</button></form></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        const search = document.querySelector('#search');
+        const table = document.querySelector('#grades-table');
+        const body = table.querySelector('tbody');
+        const empty = document.querySelector('#empty');
+        const urls = { edit: '/database/ID/edit/', remove: '/database/ID/delete/' };
+        const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        let searchNumber = 0;
+        function cell(row, value) {
+            const item = document.createElement('td');
+            item.textContent = value;
+            row.append(item);
+        }
+
+        function rowFor(grade) {
+            const row = document.createElement('tr');
+            ['student_name', 'group', 'subject', 'grade', 'date', 'teacher'].forEach(key => cell(row, grade[key]));
+            const actions = document.createElement('td');
+            const edit = document.createElement('a');
+            edit.href = urls.edit.replace('ID', grade.id);
+            edit.textContent = 'Изменить';
+            const form = document.createElement('form');
+            form.method = 'post'; form.action = urls.remove.replace('ID', grade.id); form.style.display = 'inline';
+            const token = document.createElement('input');
+            token.type = 'hidden'; token.name = 'csrfmiddlewaretoken'; token.value = csrf;
+            const button = document.createElement('button');
+            button.textContent = 'Удалить';
+            form.append(token, button); actions.append(edit, document.createTextNode(' '), form); row.append(actions);
+            return row;
+        }
+
+        search.addEventListener('input', async () => {
+            const currentSearch = ++searchNumber;
+            const response = await fetch(`{% url 'search_grades' %}?q=${encodeURIComponent(search.value)}`);
+            const { grades } = await response.json();
+            if (currentSearch !== searchNumber) return;
+            body.replaceChildren(...grades.map(rowFor));
+            table.hidden = !grades.length;
+            empty.hidden = Boolean(grades.length);
+            empty.textContent = search.value ? 'По вашему запросу ничего не найдено.' : 'В базе данных пока нет записей.';
+        });
+    </script>
+</body>
+</html>

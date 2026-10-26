@@ -36,3 +36,33 @@ class GradeSavingTests(TestCase):
         response = self.client.post(reverse('index'), {**self.data, 'grade': 6})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Grade.objects.count(), 0)
+
+    def test_search_edit_and_delete(self):
+        self.client.post(reverse('index'), self.data)
+        grade = Grade.objects.get()
+        self.assertContains(self.client.get(reverse('database_list')), 'Иванов')
+        for query in ('Иванов', 'ИУ-1', 'Математика', 'Петров'):
+            response = self.client.get(reverse('search_grades'), {'q': query})
+            self.assertEqual(len(response.json()['grades']), 1)
+        self.assertEqual(self.client.get(reverse('search_grades'), {'q': 'нет'}).json()['grades'], [])
+        edit_url = reverse('edit_grade', args=[grade.pk])
+        self.client.post(edit_url, {**self.data, 'grade': 6})
+        grade.refresh_from_db()
+        self.assertEqual(grade.grade, 5)
+        self.client.post(edit_url, {**self.data, 'grade': 4})
+        grade.refresh_from_db()
+        self.assertEqual(grade.grade, 4)
+        delete_url = reverse('delete_grade', args=[grade.pk])
+        self.client.get(delete_url)
+        self.assertEqual(Grade.objects.count(), 1)
+        self.client.post(delete_url)
+        self.assertEqual(Grade.objects.count(), 0)
+
+    def test_edit_duplicate(self):
+        self.client.post(reverse('index'), self.data)
+        self.client.post(reverse('index'), {**self.data, 'student_name': 'Сидоров'})
+        other = Grade.objects.get(student_name='Сидоров')
+        response = self.client.post(reverse('edit_grade', args=[other.pk]), self.data)
+        self.assertContains(response, 'уже существует')
+        other.refresh_from_db()
+        self.assertEqual(other.student_name, 'Сидоров')
