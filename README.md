@@ -14,24 +14,61 @@ uv run python manage.py runserver
 
 ## Развёртывание на PythonAnywhere
 
-1. Загрузите проект на GitHub, клонируйте его на PythonAnywhere и установите зависимости командой `uv sync --python 3.13 --frozen`. После выполните миграцию `uv run python manage.py migrate`.
-2. Создайте веб-приложение с ручной настройкой и укажите виртуальное окружение. В WSGI-конфигурации добавьте путь к проекту в `sys.path` и задайте переменные окружения до импорта приложения:
 
-   ```python
-   import os
-   import sys
+### Шаг 1. В консоли bash выполните следующие команды:
+```bash
+# 1. Установите uv
+pip install --user uv
 
-   project = '/home/USERNAME/PROJECT'
-   if project not in sys.path:
-       sys.path.insert(0, project)
-   os.environ['DJANGO_SETTINGS_MODULE'] = 'lr_04_mysql.settings'
-   os.environ['DJANGO_SECRET_KEY'] = 'УСТАНОВИТЕ-ДЛИННЫЙ-СЛУЧАЙНЫЙ-СЕКРЕТ'
-   os.environ['DJANGO_DEBUG'] = 'false'
-   os.environ['DJANGO_ALLOWED_HOSTS'] = 'USERNAME.pythonanywhere.com'
+# 2. Склонируйте проект и перейдите в него
+git clone https://github.com/myuni-repos/web-lr-04-mysql.git
+cd web-lr-04-mysql
 
-   from django.core.wsgi import get_wsgi_application
-   application = get_wsgi_application()
-   ```
+# 3. Создайте .venv строго на Python 3.13 и поставьте пакеты из uv.lock
+uv sync --python 3.13 --frozen
 
-3. Замените `USERNAME`, `PROJECT` и секрет своими значениями. Для генерации секрета можно выполнить `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`. Не публикуйте его в репозитории.
-4. Выполните `python manage.py collectstatic` и настройте отображение URL `/static/` на каталог `PROJECT/staticfiles` в разделе Web. Перезапустите веб-приложение. Каталоги проекта, `storage/` и файл SQLite должны быть доступны для записи; регулярно сохраняйте их резервные копии.
+# 4. Подготовьте папку хранения, базу данных и статику
+mkdir -p storage
+uv run python manage.py migrate
+uv run python manage.py collectstatic --noinput
+
+# 5. Сгенерируйте секретный ключ (скопируйте вывод из консоли для шага 2)
+uv run python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+### Шаг 2. Создание web приложения в PythonAnywhere
+
+1. Нажмите Add a new web app → Next → Manual configuration → выберите Python 3.13.
+2. В разделе Virtualenv укажите полный путь с точкой перед venv:
+/home/USERNAME/PROJECT/.venv
+3. В разделе Static files добавьте строку:
+	• URL: /static/
+	• Directory: /home/USERNAME/PROJECT/staticfiles
+
+### Шаг 3. Настройка запуска (файл WSGI)
+
+Во вкладке Web откройте ссылку в строке WSGI configuration file, полностью удалите шаблонный код и вставьте свой (заменив USERNAME, PROJECT и вставив сгенерированный выше ключ):
+
+```py
+import os
+import sys
+
+project = '/home/USERNAME/PROJECT'
+if project not in sys.path:
+    sys.path.insert(0, project)
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'lr_04_mysql.settings'
+os.environ['DJANGO_SECRET_KEY'] = 'ВСТАВЬТЕ-КЛЮЧ-ИЗ-ШАГА-1'
+os.environ['DJANGO_DEBUG'] = 'false'
+os.environ['DJANGO_ALLOWED_HOSTS'] = 'USERNAME.pythonanywhere.com'
+
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
+
+```
+
+### Шаг 4. Запуск и дальнейшие обновления
+
+* Сохраните WSGI-файл (Ctrl+S или кнопка Save сверху) и нажмите зеленую кнопку Reload во вкладке Web. Сайт заработает по адресу https://pythonanywhere.com.
+* Как обновлять сайт в будущем: зайдите в Bash-консоль в папку проекта, выполните `git pull && uv sync --frozen && uv run python manage.py migrate && uv run python manage.py collectstatic --noinput` и нажмите Reload во вкладке Web.
+* Регулярно скачивайте резервные копии файла db.sqlite3 и папки storage/ через вкладку Files.
