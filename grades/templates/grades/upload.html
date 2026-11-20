@@ -1,8 +1,18 @@
 {% extends 'grades/base.html' %}
 {% block content %}
-<div class="card shadow-sm"><div class="card-body">
-<h1 class="h3">Загрузка файла</h1><p>Поддерживаются JSON и XML с данными успеваемости.</p>
-{% if message %}<div class="alert {% if is_error %}alert-danger{% else %}alert-success{% endif %}">{{ message }}</div>{% endif %}
-<form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">Загрузить и проверить</button></form>
-</div></div>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h1 class="h3">Загрузка файла</h1><p>Поддерживаются JSON и XML с данными успеваемости.</p>
+      {% if message %}
+        <div class="alert {% if is_error %}
+            alert-danger
+          {% else %}
+            alert-success
+          {% endif %}">{{ message }}</div>
+      {% endif %}
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">Загрузить и проверить</button>
+      </form>
+    </div>
+  </div>
 {% endblock %}

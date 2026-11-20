@@ -1,10 +1,41 @@
 {% extends 'grades/base.html' %}
-{% block title %}Данные из файлов{% endblock %}
+{% block title %}
+  Данные из файлов
+{% endblock %}
 {% block content %}
-<h1 class="h3 mb-4">Данные из файлов</h1>
-{% if message %}<div class="alert alert-info">{{ message }}</div>{% else %}
-<div class="table-responsive"><table class="table table-striped table-bordered bg-white">
-<thead><tr><th>Файл</th><th>Студент</th><th>Группа</th><th>Предмет</th><th>Оценка</th><th>Дата</th><th>Преподаватель</th></tr></thead>
-<tbody>{% for item in grades %}<tr><td><small>{{ item.filename }}</small></td><td>{{ item.student_name }}</td><td>{{ item.group }}</td><td>{{ item.subject }}</td><td>{{ item.grade }}</td><td>{{ item.date }}</td><td>{{ item.teacher }}</td></tr>{% endfor %}</tbody>
-</table></div>{% endif %}
+  <h1 class="h3 mb-4">Данные из файлов</h1>
+  {% if message %}
+    <div class="alert alert-info">{{ message }}</div>
+  {% else %}
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered bg-white">
+        <thead>
+          <tr>
+            <th>Файл</th>
+            <th>Студент</th>
+            <th>Группа</th>
+            <th>Предмет</th>
+            <th>Оценка</th>
+            <th>Дата</th>
+            <th>Преподаватель</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in grades %}
+            <tr>
+              <td>
+                <small>{{ item.filename }}</small>
+              </td>
+              <td>{{ item.student_name }}</td>
+              <td>{{ item.group }}</td>
+              <td>{{ item.subject }}</td>
+              <td>{{ item.grade }}</td>
+              <td>{{ item.date }}</td>
+              <td>{{ item.teacher }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
 {% endblock %}
